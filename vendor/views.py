@@ -32,7 +32,7 @@ class PurchaseOrderDetailView(generics.RetrieveUpdateDestroyAPIView):
         self.update_vendor_performance(instance.vendor)
 
     def perform_destroy(self, instance):
-        # Update vendor performance metrics upon PO deletion
+        # Update vendor_performance metrics upon PO deletion
         self.update_vendor_performance(instance.vendor)
         instance.delete()
 
@@ -42,19 +42,19 @@ class PurchaseOrderDetailView(generics.RetrieveUpdateDestroyAPIView):
         on_time_delivered_pos = completed_pos.filter(delivery_date__lte=timezone.now())
         on_time_delivery_rate = (on_time_delivered_pos.count() / completed_pos.count()) * 100 if completed_pos.count() > 0 else 0.0
 
-        # Quality Rating Average
+        # Quality_Rating_Average
         completed_pos_with_rating = completed_pos.exclude(quality_rating__isnull=True)
         quality_rating_avg = completed_pos_with_rating.aggregate(Avg('quality_rating'))['quality_rating__avg'] if completed_pos_with_rating.count() > 0 else 0.0
 
-        # Average Response Time
+        # Average_Response Time
         acknowledged_pos = completed_pos.exclude(acknowledgment_date__isnull=True)
         avg_response_time = acknowledged_pos.aggregate(Avg('acknowledgment_date' - F('issue_date')))['acknowledgment_date__avg'].total_seconds() if acknowledged_pos.count() > 0 else 0.0
 
-        # Fulfilment Rate
+        # Fulfilment_Rate
         fulfilled_pos = completed_pos.exclude(issue_date__isnull=True)
         fulfilment_rate = (fulfilled_pos.count() / completed_pos.count()) * 100 if completed_pos.count() > 0 else 0.0
 
-        # Update or create historical performance record
+        # Update or create historical_performance record
         historical_performance, created = HistoricalPerformance.objects.update_or_create(
             vendor=vendor,
             date=timezone.now(),
